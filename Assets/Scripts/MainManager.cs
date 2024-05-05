@@ -11,6 +11,7 @@ public class MainManager : MonoBehaviour
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text BestScoreText;
     public GameObject GameOverText;
     
     private bool m_Started = false;
@@ -24,7 +25,10 @@ public class MainManager : MonoBehaviour
     {
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
-        
+
+        ScoreText.text = $"{MainMenu.currentPlayerName} Score : {m_Points}"; // Отображаем текущий результат
+        BestScoreText.text = MainMenu.bestScoreText; // Отображаем лучший результат
+
         int[] pointCountArray = new [] {1,1,2,2,5,5};
         for (int i = 0; i < LineCount; ++i)
         {
@@ -57,7 +61,10 @@ public class MainManager : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                MainMenu.currentScore = m_Points; // Сохраняем текущий результат
+                Debug.Log("Current score (MainManager): " + MainMenu.currentScore);
+                MainMenu.ReturnToMenu(); // Возвращаемся в главное меню
+               // SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
         }
     }
@@ -65,7 +72,7 @@ public class MainManager : MonoBehaviour
     void AddPoint(int point)
     {
         m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
+        ScoreText.text = $"{MainMenu.currentPlayerName} Score : {m_Points}";  // это интерполяция строк, типа Format в Delphi
     }
 
     public void GameOver()
