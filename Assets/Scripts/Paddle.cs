@@ -10,7 +10,8 @@ public class Paddle : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        // Lenght of paddle become huge to debug end game when bricks are destroyed
+      //  transform.localScale = new Vector3(10.0f, 1.0f, 1.0f);
     }
 
     // Update is called once per frame

@@ -15,10 +15,48 @@ public class MainMenu : MonoBehaviour
     public TMP_InputField inputField;  // Переменная для хранения ссылки на TMP_InputField
     public TextMeshProUGUI bestScoreTextUI;  // Переменная для хранения ссылки на TextMeshProUGUI
 
+    // button object for Difficulty settings to mod the difficulty level and show current level with text and color
+    public GameObject difficultyButton;
+
     // Метод для загрузки основной сцены игры
     public void StartGame()
     {
         SceneManager.LoadScene("main", LoadSceneMode.Single); // Указываем название сцены, которое вы использовали в Unity
+    }
+
+    // Open Scene to set difficulty level
+    public void SetDifficultyClick()
+    {
+        SceneManager.LoadScene("Settings", LoadSceneMode.Single);
+    }
+
+    // Method to set the difficulty button state (text and color)
+    private void UpdateDifficultyButtonState()
+    {
+        // Set the text of the button to the current difficulty level
+        // Получаем ссылку на TextMeshProUGUI внутри кнопки
+        var buttonText = difficultyButton.GetComponentInChildren<TextMeshProUGUI>();
+
+        // Устанавливаем текст и цвет в зависимости от уровня сложности
+        switch (Settings.difficultyLevel)
+        {
+            case 1:
+                buttonText.text = "Easy";
+                buttonText.color = Color.green;
+                break;
+            case 2:
+                buttonText.text = "Normal";
+                buttonText.color = Color.blue;
+                break;
+            case 3:
+                buttonText.text = "Hard";
+                buttonText.color = Color.red;
+                break;
+            default:
+                buttonText.text = "Difficulty";
+                buttonText.color = Color.white;
+                break;
+        }
     }
 
     // Метод для выхода из игры
@@ -29,6 +67,12 @@ public class MainMenu : MonoBehaviour
 #else
         Application.Quit(); // original code to quit Unity player
 #endif
+    }
+
+    // open the highscore table
+    public void OpenHighscoreTable()
+    {
+        SceneManager.LoadScene("HighscoreTable", LoadSceneMode.Single);
     }
 
     static public void ReturnToMenu()
@@ -50,7 +94,8 @@ public class MainMenu : MonoBehaviour
 
     private void Update()
     {
-        Debug.Log("MainMenu.Update: Current score: " + currentScore);
+        //  Debug.Log("MainMenu.Update: Current score: " + currentScore);
+
     }
 
 
@@ -59,6 +104,8 @@ public class MainMenu : MonoBehaviour
         SceneManager.sceneLoaded += OnSceneLoaded;
 
         LoadSession();
+
+        UpdateDifficultyButtonState();
     }
 
     private void OnDestroy()
@@ -82,10 +129,23 @@ public class MainMenu : MonoBehaviour
         Debug.Log("Handle the logic for returning to the menu");
         // Обновите UI или выполните другие действия
         inputField.text = currentPlayerName;
-        if (currentScore > bestScore)
+        // lowest score in the highscore table
+        float lowestScore = HighscoreTable.HighscoreList.Count > 0 ? HighscoreTable.HighscoreList[HighscoreTable.HighscoreList.Count - 1].Score : 0;
+
+        if ((currentScore > lowestScore) || (HighscoreTable.HighscoreList.Count < HighscoreTable.MaxEntries))
         {
-            bestScore = currentScore;
-            bestPlayerName = currentPlayerName;
+            if (currentScore > bestScore)
+            {
+                bestScore = currentScore;
+                bestPlayerName = currentPlayerName;
+            }
+
+            // Add new highscore entry if it is in top HighscoreTable.MaxEntries
+            if (currentScore > 0)
+            {
+                HighscoreTable.AddNewEntry(currentPlayerName, currentScore);
+            }
+            currentScore = 0;
         }
         bestScoreText = "Best score: " + bestPlayerName + " : " + bestScore;
         bestScoreTextUI.text = bestScoreText;
@@ -98,20 +158,23 @@ public class MainMenu : MonoBehaviour
     {
         // All values of MainMenu we want to save between sessions
         public string currentPlayerName;
-        public int bestScore;
-        public string bestPlayerName;
+        //  public int bestScore;
+        //  public string bestPlayerName;
     }
 
     public void SaveSession()
     {
         SaveData saveData = new SaveData();
         saveData.currentPlayerName = currentPlayerName;
-        saveData.bestScore = bestScore;
-        saveData.bestPlayerName = bestPlayerName;
+        //  saveData.bestScore = bestScore;
+        //  saveData.bestPlayerName = bestPlayerName;
 
         string json = JsonUtility.ToJson(saveData);
 
         File.WriteAllText(Application.persistentDataPath + "/savefile.json", json);
+
+        // SaveHighscores
+        HighscoreTable.SaveHighscores();
     }
 
     public void LoadSession()
@@ -123,8 +186,22 @@ public class MainMenu : MonoBehaviour
             SaveData saveData = JsonUtility.FromJson<SaveData>(json);
 
             currentPlayerName = saveData.currentPlayerName;
-            bestScore = saveData.bestScore;
-            bestPlayerName = saveData.bestPlayerName;
+
+            // Initialize or Load the highscore table
+            HighscoreTable.InitializeHighscoreTable();
+
+            //   bestScore = saveData.bestScore;
+            //   bestPlayerName = saveData.bestPlayerName;
+            if (HighscoreTable.HighscoreList.Count > 0)
+            {
+                bestScore = HighscoreTable.HighscoreList[0].Score;
+                bestPlayerName = HighscoreTable.HighscoreList[0].PlayerName;
+            }
+            else
+            {
+                bestScore = 0;
+                bestPlayerName = "Player";
+            }
         }
     }
 

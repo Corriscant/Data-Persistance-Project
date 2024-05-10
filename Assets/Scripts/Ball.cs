@@ -16,7 +16,8 @@ public class Ball : MonoBehaviour
     {
         var velocity = m_Rigidbody.velocity;
         
-        //after a collision we accelerate a bit
+        // Turned off
+     /*   //after a collision we accelerate a bit
         velocity += velocity.normalized * 0.01f;
         
         //check if we are not going totally vertically as this would lead to being stuck, we add a little vertical force
@@ -24,11 +25,11 @@ public class Ball : MonoBehaviour
         {
             velocity += velocity.y > 0 ? Vector3.up * 0.5f : Vector3.down * 0.5f;
         }
-
+     */
         //max velocity
-        if (velocity.magnitude > 3.0f)
+        if (velocity.magnitude > (3.0f * Settings.difficultyLevel))
         {
-            velocity = velocity.normalized * 3.0f;
+            velocity = velocity.normalized * (3.0f * Settings.difficultyLevel);
         }
 
         m_Rigidbody.velocity = velocity;
